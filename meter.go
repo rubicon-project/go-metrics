@@ -26,12 +26,12 @@ func GetOrRegisterThisMeter(name string, r Registry) ThisMeter {
 	if nil == r {
 		r = DefaultRegistry
 	}
-	return r.GetOrRegister(name, NewMeter).(ThisMeter)
+	return r.GetOrRegister(name, NewThisMeter).(ThisMeter)
 }
 
 // NewMeter constructs a new StandardMeter and launches a goroutine.
 // Be sure to call Stop() once the meter is of no use to allow for garbage collection.
-func NewMeter() ThisMeter {
+func NewThisMeter() ThisMeter {
 	if UseNilMetrics {
 		return NilMeter{}
 	}
@@ -51,7 +51,7 @@ func NewMeter() ThisMeter {
 // Be sure to unregister the meter from the registry once it is of no use to
 // allow for garbage collection.
 func NewRegisteredMeter(name string, r Registry) ThisMeter {
-	c := NewMeter()
+	c := NewThisMeter()
 	if nil == r {
 		r = DefaultRegistry
 	}
@@ -263,11 +263,15 @@ func (ma *meterArbiter) tickMeters() {
 	}
 }
 
-// Exposing Meter interface and GetOrRegisterMeter function to replace with counter functionality
+// Exposing functions/interfaces to replace with counter functionality
 type Meter interface {
 	Counter
 }
 
 func GetOrRegisterMeter(name string, r Registry) Meter {
 	return GetOrRegisterCounter(name, r)
+}
+
+func NewMeter() Meter {
+	return NewCounter()
 }

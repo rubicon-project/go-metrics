@@ -14,7 +14,7 @@ func main() {
 		r.Register(fmt.Sprintf("gaugefloat64-%d", i), metrics.NewGaugeFloat64())
 		r.Register(fmt.Sprintf("histogram-uniform-%d", i), metrics.NewHistogram(metrics.NewUniformSample(1028)))
 		r.Register(fmt.Sprintf("histogram-exp-%d", i), metrics.NewHistogram(metrics.NewExpDecaySample(1028, 0.015)))
-		r.Register(fmt.Sprintf("meter-%d", i), metrics.NewMeter())
+		r.Register(fmt.Sprintf("meter-%d", i), metrics.NewThisMeter())
 	}
 	time.Sleep(600e9)
 }
