@@ -9,6 +9,8 @@ type Counter interface {
 	Dec(int64)
 	Inc(int64)
 	Snapshot() Counter
+
+	Mark(int64)
 }
 
 // GetOrRegisterCounter returns an existing Counter or constructs and registers
@@ -59,6 +61,10 @@ func (CounterSnapshot) Inc(int64) {
 	panic("Inc called on a CounterSnapshot")
 }
 
+func (CounterSnapshot) Mark(int64) {
+	panic("Mark called on a CounterSnapshot")
+}
+
 // Snapshot returns the snapshot.
 func (c CounterSnapshot) Snapshot() Counter { return c }
 
@@ -79,6 +85,8 @@ func (NilCounter) Inc(i int64) {}
 
 // Snapshot is a no-op.
 func (NilCounter) Snapshot() Counter { return NilCounter{} }
+
+func (NilCounter) Mark(i int64) {}
 
 // StandardCounter is the standard implementation of a Counter and uses the
 // sync/atomic package to manage a single int64 value.
@@ -109,4 +117,9 @@ func (c *StandardCounter) Inc(i int64) {
 // Snapshot returns a read-only copy of the counter.
 func (c *StandardCounter) Snapshot() Counter {
 	return CounterSnapshot(c.Count())
+}
+
+// Overriding Mark func with counter.Inc
+func (c *StandardCounter) Mark(i int64) {
+	c.Inc(i)
 }

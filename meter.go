@@ -18,11 +18,11 @@ type ThisMeter interface {
 	Stop()
 }
 
-// GetOrRegisterMeter returns an existing Meter or constructs and registers a
+// GetOrRegisterThisMeter returns an existing Meter or constructs and registers a
 // new StandardMeter.
 // Be sure to unregister the meter from the registry once it is of no use to
 // allow for garbage collection.
-func GetOrRegisterMeter(name string, r Registry) ThisMeter {
+func GetOrRegisterThisMeter(name string, r Registry) ThisMeter {
 	if nil == r {
 		r = DefaultRegistry
 	}
@@ -263,4 +263,11 @@ func (ma *meterArbiter) tickMeters() {
 	}
 }
 
-var Meter ThisMeter
+// Exposing Meter interface and GetOrRegisterMeter function to replace with counter functionality
+type Meter interface {
+	Counter
+}
+
+func GetOrRegisterMeter(name string, r Registry) Meter {
+	return GetOrRegisterCounter(name, r)
+}
