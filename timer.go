@@ -40,7 +40,7 @@ func GetOrRegisterTimer(name string, r Registry) Timer {
 
 // NewCustomTimer constructs a new StandardTimer from a Histogram and a Meter.
 // Be sure to call Stop() once the timer is of no use to allow for garbage collection.
-func NewCustomTimer(h Histogram, m Meter) Timer {
+func NewCustomTimer(h Histogram, m ThisMeter) Timer {
 	if UseNilMetrics {
 		return NilTimer{}
 	}
@@ -78,7 +78,7 @@ func NewTimer() Timer {
 // NilTimer is a no-op Timer.
 type NilTimer struct {
 	h Histogram
-	m Meter
+	m ThisMeter
 }
 
 // Count is a no-op.
@@ -141,7 +141,7 @@ func (NilTimer) Variance() float64 { return 0.0 }
 // and Meter.
 type StandardTimer struct {
 	histogram Histogram
-	meter     Meter
+	meter     ThisMeter
 	mutex     sync.Mutex
 }
 

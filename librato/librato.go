@@ -134,7 +134,7 @@ func (self *Reporter) BuildRequest(now time.Time, r metrics.Registry) (snapshot 
 				}
 				snapshot.Gauges = append(snapshot.Gauges, gauges...)
 			}
-		case metrics.Meter:
+		case metrics.ThisMeter:
 			measurement[Name] = name
 			measurement[Value] = float64(m.Count())
 			snapshot.Counters = append(snapshot.Counters, measurement)

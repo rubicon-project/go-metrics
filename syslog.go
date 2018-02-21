@@ -40,7 +40,7 @@ func Syslog(r Registry, d time.Duration, w *syslog.Writer) {
 					ps[3],
 					ps[4],
 				))
-			case Meter:
+			case ThisMeter:
 				m := metric.Snapshot()
 				w.Info(fmt.Sprintf(
 					"meter %s: count: %d 1-min: %.2f 5-min: %.2f 15-min: %.2f mean: %.2f",

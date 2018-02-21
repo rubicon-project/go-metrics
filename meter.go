@@ -7,14 +7,14 @@ import (
 
 // Meters count events to produce exponentially-weighted moving average rates
 // at one-, five-, and fifteen-minutes and a mean rate.
-type Meter interface {
+type ThisMeter interface {
 	Count() int64
 	Mark(int64)
 	Rate1() float64
 	Rate5() float64
 	Rate15() float64
 	RateMean() float64
-	Snapshot() Meter
+	Snapshot() ThisMeter
 	Stop()
 }
 
@@ -22,16 +22,16 @@ type Meter interface {
 // new StandardMeter.
 // Be sure to unregister the meter from the registry once it is of no use to
 // allow for garbage collection.
-func GetOrRegisterMeter(name string, r Registry) Meter {
+func GetOrRegisterMeter(name string, r Registry) ThisMeter {
 	if nil == r {
 		r = DefaultRegistry
 	}
-	return r.GetOrRegister(name, NewMeter).(Meter)
+	return r.GetOrRegister(name, NewMeter).(ThisMeter)
 }
 
 // NewMeter constructs a new StandardMeter and launches a goroutine.
 // Be sure to call Stop() once the meter is of no use to allow for garbage collection.
-func NewMeter() Meter {
+func NewMeter() ThisMeter {
 	if UseNilMetrics {
 		return NilMeter{}
 	}
@@ -50,7 +50,7 @@ func NewMeter() Meter {
 // goroutine.
 // Be sure to unregister the meter from the registry once it is of no use to
 // allow for garbage collection.
-func NewRegisteredMeter(name string, r Registry) Meter {
+func NewRegisteredMeter(name string, r Registry) ThisMeter {
 	c := NewMeter()
 	if nil == r {
 		r = DefaultRegistry
@@ -90,7 +90,7 @@ func (m *MeterSnapshot) Rate15() float64 { return m.rate15 }
 func (m *MeterSnapshot) RateMean() float64 { return m.rateMean }
 
 // Snapshot returns the snapshot.
-func (m *MeterSnapshot) Snapshot() Meter { return m }
+func (m *MeterSnapshot) Snapshot() ThisMeter { return m }
 
 // Stop is a no-op.
 func (m *MeterSnapshot) Stop() {}
@@ -117,7 +117,7 @@ func (NilMeter) Rate15() float64 { return 0.0 }
 func (NilMeter) RateMean() float64 { return 0.0 }
 
 // Snapshot is a no-op.
-func (NilMeter) Snapshot() Meter { return NilMeter{} }
+func (NilMeter) Snapshot() ThisMeter { return NilMeter{} }
 
 // Stop is a no-op.
 func (NilMeter) Stop() {}
@@ -209,7 +209,7 @@ func (m *StandardMeter) RateMean() float64 {
 }
 
 // Snapshot returns a read-only copy of the meter.
-func (m *StandardMeter) Snapshot() Meter {
+func (m *StandardMeter) Snapshot() ThisMeter {
 	m.lock.RLock()
 	snapshot := *m.snapshot
 	m.lock.RUnlock()
@@ -262,3 +262,5 @@ func (ma *meterArbiter) tickMeters() {
 		meter.tick()
 	}
 }
+
+var Meter ThisMeter

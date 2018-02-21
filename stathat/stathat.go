@@ -39,7 +39,7 @@ func sh(r metrics.Registry, userkey string) error {
 			stathat.PostEZValue(name+".95-percentile", userkey, float64(ps[2]))
 			stathat.PostEZValue(name+".99-percentile", userkey, float64(ps[3]))
 			stathat.PostEZValue(name+".999-percentile", userkey, float64(ps[4]))
-		case metrics.Meter:
+		case metrics.ThisMeter:
 			m := metric.Snapshot()
 			stathat.PostEZCount(name+".count", userkey, int(m.Count()))
 			stathat.PostEZValue(name+".one-minute", userkey, float64(m.Rate1()))

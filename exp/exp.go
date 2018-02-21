@@ -106,7 +106,7 @@ func (exp *exp) publishHistogram(name string, metric metrics.Histogram) {
 	exp.getFloat(name + ".999-percentile").Set(float64(ps[4]))
 }
 
-func (exp *exp) publishMeter(name string, metric metrics.Meter) {
+func (exp *exp) publishMeter(name string, metric metrics.ThisMeter) {
 	m := metric.Snapshot()
 	exp.getInt(name + ".count").Set(m.Count())
 	exp.getFloat(name + ".one-minute").Set(float64(m.Rate1()))
@@ -145,8 +145,8 @@ func (exp *exp) syncToExpvar() {
 			exp.publishGaugeFloat64(name, i.(metrics.GaugeFloat64))
 		case metrics.Histogram:
 			exp.publishHistogram(name, i.(metrics.Histogram))
-		case metrics.Meter:
-			exp.publishMeter(name, i.(metrics.Meter))
+		case metrics.ThisMeter:
+			exp.publishMeter(name, i.(metrics.ThisMeter))
 		case metrics.Timer:
 			exp.publishTimer(name, i.(metrics.Timer))
 		default:
