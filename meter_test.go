@@ -15,7 +15,7 @@ func BenchmarkMeter(b *testing.B) {
 
 func TestGetOrRegisterThisMeter(t *testing.T) {
 	r := NewRegistry()
-	NewRegisteredMeter("foo", r).Mark(47)
+	NewRegisteredThisMeter("foo", r).Mark(47)
 	if m := GetOrRegisterThisMeter("foo", r); 47 != m.Count() {
 		t.Fatal(m)
 	}
@@ -24,9 +24,9 @@ func TestGetOrRegisterThisMeter(t *testing.T) {
 func TestMeterDecay(t *testing.T) {
 	ma := meterArbiter{
 		ticker: time.NewTicker(time.Millisecond),
-		meters: make(map[*StandardMeter]struct{}),
+		meters: make(map[*StandardThisMeter]struct{}),
 	}
-	m := newStandardMeter()
+	m := newStandardThisMeter()
 	ma.meters[m] = struct{}{}
 	go ma.tick()
 	m.Mark(1)

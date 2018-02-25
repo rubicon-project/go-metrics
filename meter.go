@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Meters count events to produce exponentially-weighted moving average rates
+// ThisMeters count events to produce exponentially-weighted moving average rates
 // at one-, five-, and fifteen-minutes and a mean rate.
 type ThisMeter interface {
 	Count() int64
@@ -19,7 +19,7 @@ type ThisMeter interface {
 }
 
 // GetOrRegisterThisMeter returns an existing Meter or constructs and registers a
-// new StandardMeter.
+// new StandardThisMeter.
 // Be sure to unregister the meter from the registry once it is of no use to
 // allow for garbage collection.
 func GetOrRegisterThisMeter(name string, r Registry) ThisMeter {
@@ -29,13 +29,13 @@ func GetOrRegisterThisMeter(name string, r Registry) ThisMeter {
 	return r.GetOrRegister(name, NewThisMeter).(ThisMeter)
 }
 
-// NewMeter constructs a new StandardMeter and launches a goroutine.
+// NewThisMeter constructs a new StandardThisMeter and launches a goroutine.
 // Be sure to call Stop() once the meter is of no use to allow for garbage collection.
 func NewThisMeter() ThisMeter {
 	if UseNilMetrics {
-		return NilMeter{}
+		return NilThisMeter{}
 	}
-	m := newStandardMeter()
+	m := newStandardThisMeter()
 	arbiter.Lock()
 	defer arbiter.Unlock()
 	arbiter.meters[m] = struct{}{}
@@ -46,11 +46,11 @@ func NewThisMeter() ThisMeter {
 	return m
 }
 
-// NewMeter constructs and registers a new StandardMeter and launches a
+// NewRegisteredThisMeter constructs and registers a new StandardThisMeter and launches a
 // goroutine.
 // Be sure to unregister the meter from the registry once it is of no use to
 // allow for garbage collection.
-func NewRegisteredMeter(name string, r Registry) ThisMeter {
+func NewRegisteredThisMeter(name string, r Registry) ThisMeter {
 	c := NewThisMeter()
 	if nil == r {
 		r = DefaultRegistry
@@ -59,81 +59,81 @@ func NewRegisteredMeter(name string, r Registry) ThisMeter {
 	return c
 }
 
-// MeterSnapshot is a read-only copy of another Meter.
-type MeterSnapshot struct {
+// ThisMeterSnapshot is a read-only copy of another Meter.
+type ThisMeterSnapshot struct {
 	count                          int64
 	rate1, rate5, rate15, rateMean float64
 }
 
 // Count returns the count of events at the time the snapshot was taken.
-func (m *MeterSnapshot) Count() int64 { return m.count }
+func (m *ThisMeterSnapshot) Count() int64 { return m.count }
 
 // Mark panics.
-func (*MeterSnapshot) Mark(n int64) {
-	panic("Mark called on a MeterSnapshot")
+func (*ThisMeterSnapshot) Mark(n int64) {
+	panic("Mark called on a ThisMeterSnapshot")
 }
 
 // Rate1 returns the one-minute moving average rate of events per second at the
 // time the snapshot was taken.
-func (m *MeterSnapshot) Rate1() float64 { return m.rate1 }
+func (m *ThisMeterSnapshot) Rate1() float64 { return m.rate1 }
 
 // Rate5 returns the five-minute moving average rate of events per second at
 // the time the snapshot was taken.
-func (m *MeterSnapshot) Rate5() float64 { return m.rate5 }
+func (m *ThisMeterSnapshot) Rate5() float64 { return m.rate5 }
 
 // Rate15 returns the fifteen-minute moving average rate of events per second
 // at the time the snapshot was taken.
-func (m *MeterSnapshot) Rate15() float64 { return m.rate15 }
+func (m *ThisMeterSnapshot) Rate15() float64 { return m.rate15 }
 
 // RateMean returns the meter's mean rate of events per second at the time the
 // snapshot was taken.
-func (m *MeterSnapshot) RateMean() float64 { return m.rateMean }
+func (m *ThisMeterSnapshot) RateMean() float64 { return m.rateMean }
 
 // Snapshot returns the snapshot.
-func (m *MeterSnapshot) Snapshot() ThisMeter { return m }
+func (m *ThisMeterSnapshot) Snapshot() ThisMeter { return m }
 
 // Stop is a no-op.
-func (m *MeterSnapshot) Stop() {}
+func (m *ThisMeterSnapshot) Stop() {}
 
-// NilMeter is a no-op Meter.
-type NilMeter struct{}
+// NilThisMeter is a no-op Meter.
+type NilThisMeter struct{}
 
 // Count is a no-op.
-func (NilMeter) Count() int64 { return 0 }
+func (NilThisMeter) Count() int64 { return 0 }
 
 // Mark is a no-op.
-func (NilMeter) Mark(n int64) {}
+func (NilThisMeter) Mark(n int64) {}
 
 // Rate1 is a no-op.
-func (NilMeter) Rate1() float64 { return 0.0 }
+func (NilThisMeter) Rate1() float64 { return 0.0 }
 
 // Rate5 is a no-op.
-func (NilMeter) Rate5() float64 { return 0.0 }
+func (NilThisMeter) Rate5() float64 { return 0.0 }
 
 // Rate15is a no-op.
-func (NilMeter) Rate15() float64 { return 0.0 }
+func (NilThisMeter) Rate15() float64 { return 0.0 }
 
 // RateMean is a no-op.
-func (NilMeter) RateMean() float64 { return 0.0 }
+func (NilThisMeter) RateMean() float64 { return 0.0 }
 
 // Snapshot is a no-op.
-func (NilMeter) Snapshot() ThisMeter { return NilMeter{} }
+func (NilThisMeter) Snapshot() ThisMeter { return NilThisMeter{} }
 
 // Stop is a no-op.
-func (NilMeter) Stop() {}
+func (NilThisMeter) Stop() {}
 
-// StandardMeter is the standard implementation of a Meter.
-type StandardMeter struct {
+// StandardThisMeter is the standard implementation of a Meter.
+type StandardThisMeter struct {
 	lock        sync.RWMutex
-	snapshot    *MeterSnapshot
+	snapshot    *ThisMeterSnapshot
 	a1, a5, a15 EWMA
 	startTime   time.Time
 	stopped     bool
 }
 
-func newStandardMeter() *StandardMeter {
-	return &StandardMeter{
-		snapshot:  &MeterSnapshot{},
+func newStandardThisMeter() *StandardThisMeter {
+	return &StandardThisMeter{
+		snapshot:  &ThisMeterSnapshot{},
 		a1:        NewEWMA1(),
 		a5:        NewEWMA5(),
 		a15:       NewEWMA15(),
@@ -142,7 +142,7 @@ func newStandardMeter() *StandardMeter {
 }
 
 // Stop stops the meter, Mark() will be a no-op if you use it after being stopped.
-func (m *StandardMeter) Stop() {
+func (m *StandardThisMeter) Stop() {
 	m.lock.Lock()
 	stopped := m.stopped
 	m.stopped = true
@@ -155,7 +155,7 @@ func (m *StandardMeter) Stop() {
 }
 
 // Count returns the number of events recorded.
-func (m *StandardMeter) Count() int64 {
+func (m *StandardThisMeter) Count() int64 {
 	m.lock.RLock()
 	count := m.snapshot.count
 	m.lock.RUnlock()
@@ -163,7 +163,7 @@ func (m *StandardMeter) Count() int64 {
 }
 
 // Mark records the occurance of n events.
-func (m *StandardMeter) Mark(n int64) {
+func (m *StandardThisMeter) Mark(n int64) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	if m.stopped {
@@ -177,7 +177,7 @@ func (m *StandardMeter) Mark(n int64) {
 }
 
 // Rate1 returns the one-minute moving average rate of events per second.
-func (m *StandardMeter) Rate1() float64 {
+func (m *StandardThisMeter) Rate1() float64 {
 	m.lock.RLock()
 	rate1 := m.snapshot.rate1
 	m.lock.RUnlock()
@@ -185,7 +185,7 @@ func (m *StandardMeter) Rate1() float64 {
 }
 
 // Rate5 returns the five-minute moving average rate of events per second.
-func (m *StandardMeter) Rate5() float64 {
+func (m *StandardThisMeter) Rate5() float64 {
 	m.lock.RLock()
 	rate5 := m.snapshot.rate5
 	m.lock.RUnlock()
@@ -193,7 +193,7 @@ func (m *StandardMeter) Rate5() float64 {
 }
 
 // Rate15 returns the fifteen-minute moving average rate of events per second.
-func (m *StandardMeter) Rate15() float64 {
+func (m *StandardThisMeter) Rate15() float64 {
 	m.lock.RLock()
 	rate15 := m.snapshot.rate15
 	m.lock.RUnlock()
@@ -201,7 +201,7 @@ func (m *StandardMeter) Rate15() float64 {
 }
 
 // RateMean returns the meter's mean rate of events per second.
-func (m *StandardMeter) RateMean() float64 {
+func (m *StandardThisMeter) RateMean() float64 {
 	m.lock.RLock()
 	rateMean := m.snapshot.rateMean
 	m.lock.RUnlock()
@@ -209,14 +209,14 @@ func (m *StandardMeter) RateMean() float64 {
 }
 
 // Snapshot returns a read-only copy of the meter.
-func (m *StandardMeter) Snapshot() ThisMeter {
+func (m *StandardThisMeter) Snapshot() ThisMeter {
 	m.lock.RLock()
 	snapshot := *m.snapshot
 	m.lock.RUnlock()
 	return &snapshot
 }
 
-func (m *StandardMeter) updateSnapshot() {
+func (m *StandardThisMeter) updateSnapshot() {
 	// should run with write lock held on m.lock
 	snapshot := m.snapshot
 	snapshot.rate1 = m.a1.Rate()
@@ -225,7 +225,7 @@ func (m *StandardMeter) updateSnapshot() {
 	snapshot.rateMean = float64(snapshot.count) / time.Since(m.startTime).Seconds()
 }
 
-func (m *StandardMeter) tick() {
+func (m *StandardThisMeter) tick() {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	m.a1.Tick()
@@ -239,11 +239,11 @@ func (m *StandardMeter) tick() {
 type meterArbiter struct {
 	sync.RWMutex
 	started bool
-	meters  map[*StandardMeter]struct{}
+	meters  map[*StandardThisMeter]struct{}
 	ticker  *time.Ticker
 }
 
-var arbiter = meterArbiter{ticker: time.NewTicker(5e9), meters: make(map[*StandardMeter]struct{})}
+var arbiter = meterArbiter{ticker: time.NewTicker(5e9), meters: make(map[*StandardThisMeter]struct{})}
 
 // Ticks meters on the scheduled interval
 func (ma *meterArbiter) tick() {
@@ -261,17 +261,4 @@ func (ma *meterArbiter) tickMeters() {
 	for meter := range ma.meters {
 		meter.tick()
 	}
-}
-
-// Exposing functions/interfaces to replace with counter functionality
-type Meter interface {
-	Counter
-}
-
-func GetOrRegisterMeter(name string, r Registry) Meter {
-	return GetOrRegisterCounter(name, r)
-}
-
-func NewMeter() Meter {
-	return NewCounter()
 }

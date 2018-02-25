@@ -96,7 +96,7 @@ func main() {
 		}()
 	}
 
-	m := metrics.NewThisMeter()
+	m := metrics.NewMeter()
 	r.Register("quux", m)
 	for i := 0; i < fanout; i++ {
 		go func() {
