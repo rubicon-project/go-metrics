@@ -145,7 +145,7 @@ func (exp *exp) syncToExpvar() {
 			exp.publishGaugeFloat64(name, i.(metrics.GaugeFloat64))
 		case metrics.Histogram:
 			exp.publishHistogram(name, i.(metrics.Histogram))
-		case metrics.Meter:
+		case metrics.ThisMeter:
 			exp.publishMeter(name, i.(metrics.Meter))
 		case metrics.Timer:
 			exp.publishTimer(name, i.(metrics.Timer))

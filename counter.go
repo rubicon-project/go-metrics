@@ -9,6 +9,18 @@ type Counter interface {
 	Dec(int64)
 	Inc(int64)
 	Snapshot() Counter
+
+	//////////////////
+	// Meter functions
+	//////////////////
+	Mark(int64)
+	Rate1() float64
+	Rate5() float64
+	Rate15() float64
+	RateMean() float64
+	Stop()
+	//////////////////
+	//////////////////
 }
 
 // GetOrRegisterCounter returns an existing Counter or constructs and registers
@@ -62,6 +74,27 @@ func (CounterSnapshot) Inc(int64) {
 // Snapshot returns the snapshot.
 func (c CounterSnapshot) Snapshot() Counter { return c }
 
+//////////////////
+// Meter functions
+//////////////////
+
+func (CounterSnapshot) Mark(n int64) {
+	panic("Mark called on a CounterSnapshot")
+}
+
+func (c CounterSnapshot) Rate1() float64 { return 0.0 }
+
+func (c CounterSnapshot) Rate5() float64 { return 0.0 }
+
+func (c CounterSnapshot) Rate15() float64 { return 0.0 }
+
+func (c CounterSnapshot) RateMean() float64 { return 0.0 }
+
+func (c CounterSnapshot) Stop() {}
+
+//////////////////
+//////////////////
+
 // NilCounter is a no-op Counter.
 type NilCounter struct{}
 
@@ -79,6 +112,25 @@ func (NilCounter) Inc(i int64) {}
 
 // Snapshot is a no-op.
 func (NilCounter) Snapshot() Counter { return NilCounter{} }
+
+//////////////////
+// Meter functions
+//////////////////
+
+func (NilCounter) Mark(n int64) {}
+
+func (NilCounter) Rate1() float64 { return 0.0 }
+
+func (NilCounter) Rate5() float64 { return 0.0 }
+
+func (NilCounter) Rate15() float64 { return 0.0 }
+
+func (NilCounter) RateMean() float64 { return 0.0 }
+
+func (NilCounter) Stop() {}
+
+//////////////////
+//////////////////
 
 // StandardCounter is the standard implementation of a Counter and uses the
 // sync/atomic package to manage a single int64 value.
@@ -110,3 +162,22 @@ func (c *StandardCounter) Inc(i int64) {
 func (c *StandardCounter) Snapshot() Counter {
 	return CounterSnapshot(c.Count())
 }
+
+//////////////////
+// Meter functions
+//////////////////
+
+func (c *StandardCounter) Mark(n int64) { c.Inc(n) }
+
+func (c *StandardCounter) Rate1() float64 { return 0.0 }
+
+func (c *StandardCounter) Rate5() float64 { return 0.0 }
+
+func (c *StandardCounter) Rate15() float64 { return 0.0 }
+
+func (c *StandardCounter) RateMean() float64 { return 0.0 }
+
+func (c *StandardCounter) Stop() {}
+
+//////////////////
+//////////////////
